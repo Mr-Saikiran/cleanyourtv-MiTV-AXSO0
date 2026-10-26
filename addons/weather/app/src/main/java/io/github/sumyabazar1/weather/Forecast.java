@@ -46,6 +46,34 @@ final class Forecast {
             this.latitude = latitude;
             this.longitude = longitude;
         }
+
+        /** Same name and coordinates; the detail line does not count. */
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Place)) return false;
+            Place p = (Place) o;
+            return name.equals(p.name) && latitude == p.latitude && longitude == p.longitude;
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode() * 31 + Double.hashCode(latitude) * 17 + Double.hashCode(longitude);
+        }
+    }
+
+    /** The options.xml places, "Label|latitude|longitude" each; malformed items are skipped. */
+    static List<Place> places(String[] items) {
+        List<Place> out = new ArrayList<>();
+        for (String item : items) {
+            String[] f = item.split("\\|");
+            if (f.length != 3 || f[0].trim().isEmpty()) continue;
+            try {
+                out.add(new Place(f[0].trim(), "", Double.parseDouble(f[1].trim()), Double.parseDouble(f[2].trim())));
+            } catch (NumberFormatException ignored) {
+                // not a number: leave that place out
+            }
+        }
+        return out;
     }
 
     /**

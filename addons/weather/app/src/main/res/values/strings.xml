@@ -12,6 +12,7 @@
     <string name="aqi_line">Air quality %1$d · %2$s</string>
     <string name="updated">Updated %1$s · Open-Meteo</string>
     <string name="change_city">Change city</string>
+    <string name="places">Places</string>
     <string name="loading">Loading the weather…</string>
     <string name="offline">Can\'t reach Open-Meteo. Check the TV\'s internet connection; it tries again in 5 minutes.</string>
 

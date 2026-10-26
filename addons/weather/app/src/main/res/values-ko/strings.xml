@@ -12,6 +12,7 @@
     <string name="aqi_line">대기질 %1$d · %2$s</string>
     <string name="updated">%1$s 업데이트 · Open-Meteo</string>
     <string name="change_city">도시 바꾸기</string>
+    <string name="places">장소</string>
     <string name="loading">날씨를 불러오는 중…</string>
     <string name="offline">Open-Meteo에 연결할 수 없습니다. TV의 인터넷 연결을 확인하세요. 5분 뒤에 다시 시도합니다.</string>
 

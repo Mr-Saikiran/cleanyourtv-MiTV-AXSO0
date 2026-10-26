@@ -9,11 +9,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.text.format.DateFormat;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +49,8 @@ public final class WeatherActivity extends Activity {
     /** options.xml: degrees Fahrenheit (and mph) instead of Celsius, and the other unit on the "Feels like" line. */
     private boolean fahrenheit;
     private boolean bothUnits;
+    /** options.xml: fixed places for the Places pill; empty keeps the city search. */
+    private List<Forecast.Place> fixed;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -64,7 +68,16 @@ public final class WeatherActivity extends Activity {
         View changeCity = findViewById(R.id.changeCity);
         changeCity.setOnClickListener(v -> pickCity());
         changeCity.requestFocus();
-        if (!place.contains("name")) {
+        fixed = Forecast.places(getResources().getStringArray(R.array.places));
+        if (!fixed.isEmpty()) {
+            // options.xml places: the Places pill replaces the search, and the first place shows until another is picked.
+            changeCity.setVisibility(View.GONE);
+            View button = findViewById(R.id.placesButton);
+            button.setVisibility(View.VISIBLE);
+            button.setOnClickListener(this::dropPlaces);
+            button.requestFocus();
+            if (!fixed.contains(saved())) keep(fixed.get(0));
+        } else if (!place.contains("name")) {
             message.setText(R.string.pick_first);
             pickCity();
         }
@@ -240,15 +253,64 @@ public final class WeatherActivity extends Activity {
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle(R.string.pick_title)
                 .setItems(rows, (d, which) -> {
-                    Forecast.Place p = places.get(which);
-                    place.edit()
-                            .putString("name", p.name)
-                            .putLong("lat", Double.doubleToRawLongBits(p.latitude))
-                            .putLong("lon", Double.doubleToRawLongBits(p.longitude))
-                            .apply();
+                    keep(places.get(which));
                     message.setText(R.string.loading);
                     refresh();
                 })
                 .show();
+    }
+
+    private void keep(Forecast.Place p) {
+        place.edit()
+                .putString("name", p.name)
+                .putLong("lat", Double.doubleToRawLongBits(p.latitude))
+                .putLong("lon", Double.doubleToRawLongBits(p.longitude))
+                .apply();
+    }
+
+    private Forecast.Place saved() {
+        return new Forecast.Place(place.getString("name", ""), "",
+                Double.longBitsToDouble(place.getLong("lat", 0)), Double.longBitsToDouble(place.getLong("lon", 0)));
+    }
+
+    /** The options.xml places in a glass list under the Places pill, the current one first in focus. */
+    private void dropPlaces(View anchor) {
+        float dp = getResources().getDisplayMetrics().density;
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setBackgroundResource(R.drawable.dropdown);
+        int pad = Math.round(8 * dp);
+        list.setPadding(pad, pad, pad, pad);
+        PopupWindow popup = new PopupWindow(list, LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, true);
+        Forecast.Place current = saved();
+        View focus = null;
+        for (Forecast.Place p : fixed) {
+            TextView row = new TextView(this);
+            row.setText(p.name);
+            row.setTextSize(18);
+            row.setTextColor(getColorStateList(R.color.pill_text));
+            row.setBackgroundResource(R.drawable.pill);
+            row.setFocusable(true);
+            row.setMinWidth(Math.round(240 * dp));
+            row.setPadding(Math.round(20 * dp), Math.round(12 * dp), Math.round(20 * dp), Math.round(12 * dp));
+            row.setOnClickListener(v -> {
+                popup.dismiss();
+                if (p.equals(saved())) return;
+                keep(p);
+                content.setVisibility(View.INVISIBLE);
+                message.setText(R.string.loading);
+                message.setVisibility(View.VISIBLE);
+                shown = false;
+                refresh();
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.topMargin = list.getChildCount() > 0 ? Math.round(4 * dp) : 0;
+            list.addView(row, lp);
+            if (focus == null || p.equals(current)) focus = row;
+        }
+        popup.showAsDropDown(anchor, 0, Math.round(8 * dp), Gravity.END);
+        focus.requestFocus();
     }
 }

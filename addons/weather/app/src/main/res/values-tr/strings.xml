@@ -12,6 +12,7 @@
     <string name="aqi_line">Hava kalitesi %1$d · %2$s</string>
     <string name="updated">Güncelleme %1$s · Open-Meteo</string>
     <string name="change_city">Şehri değiştir</string>
+    <string name="places">Yerler</string>
     <string name="loading">Hava durumu yükleniyor…</string>
     <string name="offline">Open-Meteo ulaşılabilir değil. TV\'nizin internet bağlantısını kontrol edin; 5 dakika içinde tekrar dener.</string>
 

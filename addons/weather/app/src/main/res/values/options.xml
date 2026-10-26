@@ -12,4 +12,8 @@
     <string name="temperature_unit" translatable="false">c</string>
     <!-- The temperature now in the other unit too, at the start of the "Feels like" line ("22°C · Feels like 70°"). -->
     <bool name="show_both_units">false</bool>
+    <!-- Fixed places instead of the city search, one per item as "Label|latitude|longitude". With any listed, a
+         Places pill top right drops a list of them, like the launcher's Inputs menu, and the first one is shown
+         until another is picked. Empty (the default) keeps the search and Change city. -->
+    <string-array name="places" translatable="false" />
 </resources>

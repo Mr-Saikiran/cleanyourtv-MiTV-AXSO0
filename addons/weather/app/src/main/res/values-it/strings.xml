@@ -12,6 +12,7 @@
     <string name="aqi_line">Qualità dell\'aria %1$d · %2$s</string>
     <string name="updated">Aggiornato %1$s · Open-Meteo</string>
     <string name="change_city">Cambia città</string>
+    <string name="places">Luoghi</string>
     <string name="loading">Caricamento del meteo…</string>
     <string name="offline">Impossibile raggiungere Open-Meteo. Controlla la connessione a Internet della TV; riprova tra 5 minuti.</string>
 
