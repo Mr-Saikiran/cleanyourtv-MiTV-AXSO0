@@ -16,6 +16,10 @@ sky-blue glow; on any other Android TV home it is an ordinary app.
   "light rain" at 1 °C (ICON and GFS did, in a Ulaanbaatar blizzard). The app decides by the wet-bulb
   temperature instead, which counts how dry the air is: at 1 °C or below, rain and drizzle are shown as snow.
 - It reads Open-Meteo only while the page is on screen, every 30 minutes, or 5 minutes after a failure.
+- **For a home screen:** the last reading (place, temperature, sky) is readable from the content provider
+  `content://io.github.sumyabazar1.weather.now/now`, which the launcher's `weather_pill` shows in its top bar.
+  Once a home screen has read it, a job refreshes it every 30 minutes while the TV is online; until then
+  nothing runs in the background.
 - Degrees Celsius by default (Fahrenheit is an option below), English words; day names follow the TV's language.
 
 ## Options
@@ -29,6 +33,8 @@ Set in `app/src/main/res/values/options.xml` before building. With the defaults 
 | `show_wind` | `false` | The wind speed now in km/h, after "Feels like" (mph with `temperature_unit` `f`). |
 | `temperature_unit` | `c` | `f` shows degrees Fahrenheit for the temperature now, feels-like and the days' highs and lows, converted from the reading before rounding. |
 | `show_both_units` | `false` | The temperature now in the other unit too, at the start of the "Feels like" line ("22°C · Feels like 70°"). |
+| `places` | empty | Fixed places, one item each as `Label\|latitude\|longitude`. With any, a Places pill top right drops a list of them, like the launcher's Inputs menu, in place of the city search; the first shows until another is picked. |
+| `places_reset` | `false` | With `places`, leaving the page goes back to the first place, so a home screen always shows it and another place is only for a look. |
 
 ![A week, with humidity and wind](https://raw.githubusercontent.com/majnioui/cleanyourtv-contrib/pr-assets/addon-weather-week/weather-options.png)
 
@@ -39,7 +45,8 @@ Set in `app/src/main/res/values/options.xml` before building. With the defaults 
 | `INTERNET` | Open-Meteo: the place search, the weather and the air quality. |
 
 That is all. What is sent: the city name you type in the search, then that place's latitude and longitude. No
-account, no telemetry, no ads, no background service, no location permission. The chosen city stays in the
+account, no telemetry, no ads, no location permission, and no background work unless a home screen reads the
+last reading (then one request every 30 minutes). The chosen city stays in the
 app's own storage (backups are off).
 
 ## Build and install

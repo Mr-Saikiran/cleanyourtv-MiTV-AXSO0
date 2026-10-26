@@ -16,4 +16,7 @@
          Places pill top right drops a list of them, like the launcher's Inputs menu, and the first one is shown
          until another is picked. Empty (the default) keeps the search and Change city. -->
     <string-array name="places" translatable="false" />
+    <!-- With places: leaving the page goes back to the first place, so it stays the default a home screen shows,
+         and another place is only for a look. false keeps the last place picked. -->
+    <bool name="places_reset">false</bool>
 </resources>

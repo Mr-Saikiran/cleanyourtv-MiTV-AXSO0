@@ -2,6 +2,7 @@ package io.github.sumyabazar1.weather;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -9,7 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.text.format.DateFormat;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -28,8 +28,9 @@ import java.util.concurrent.Executors;
 
 /**
  * The weather for one place, full screen: now, the air quality and the next days (options.xml). It reads Open-Meteo only
- * while it is on screen (every {@link Forecast#REFRESH_MS}, or {@link Forecast#RETRY_MS} after a failure) and
- * does nothing in the background. The place is chosen once with a search and kept in the app's preferences.
+ * while it is on screen (every {@link Forecast#REFRESH_MS}, or {@link Forecast#RETRY_MS} after a failure). Nothing
+ * runs in the background unless a home screen reads {@link NowProvider}, which schedules {@link RefreshJob}. The
+ * place is chosen once with a search (or from options.xml places) and kept in the app's preferences.
  */
 public final class WeatherActivity extends Activity {
     private static final String PREFS = "place";
@@ -56,7 +57,7 @@ public final class WeatherActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_weather);
-        place = getSharedPreferences(PREFS, MODE_PRIVATE);
+        place = place(this);
         forecastDays = Forecast.forecastDays(getResources().getInteger(R.integer.forecast_days));
         showHumidity = getResources().getBoolean(R.bool.show_humidity);
         showWind = getResources().getBoolean(R.bool.show_wind);
@@ -76,7 +77,6 @@ public final class WeatherActivity extends Activity {
             button.setVisibility(View.VISIBLE);
             button.setOnClickListener(this::dropPlaces);
             button.requestFocus();
-            if (!fixed.contains(saved())) keep(fixed.get(0));
         } else if (!place.contains("name")) {
             message.setText(R.string.pick_first);
             pickCity();
@@ -93,6 +93,16 @@ public final class WeatherActivity extends Activity {
     protected void onPause() {
         super.onPause();
         main.removeCallbacks(tick);   // nothing runs while the page is not on screen
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // options.xml places_reset: another place is only a look; leaving the page goes back to the first one,
+        // and the reading a home screen shows follows it at once.
+        if (fixed.isEmpty() || !getResources().getBoolean(R.bool.places_reset) || fixed.get(0).equals(saved())) return;
+        keep(fixed.get(0));
+        NowProvider.refreshSoon(this);
     }
 
     @Override
@@ -115,7 +125,10 @@ public final class WeatherActivity extends Activity {
             Forecast.Report result = report;
             main.post(() -> {
                 if (isDestroyed()) return;
-                if (result != null) show(result);
+                if (result != null) {
+                    show(result);
+                    NowProvider.keep(this, place.getString("name", ""), result, fahrenheit);
+                }
                 else if (!shown) message.setText(R.string.offline);
                 main.postDelayed(tick, result != null ? Forecast.REFRESH_MS : Forecast.RETRY_MS);
             });
@@ -260,7 +273,22 @@ public final class WeatherActivity extends Activity {
                 .show();
     }
 
+    /**
+     * The kept place, shared with {@link NowProvider} and {@link RefreshJob}. With options.xml places, one of
+     * them: the first until another is picked.
+     */
+    static SharedPreferences place(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, MODE_PRIVATE);
+        List<Forecast.Place> fixed = Forecast.places(context.getResources().getStringArray(R.array.places));
+        if (!fixed.isEmpty() && !fixed.contains(saved(prefs))) keep(prefs, fixed.get(0));
+        return prefs;
+    }
+
     private void keep(Forecast.Place p) {
+        keep(place, p);
+    }
+
+    private static void keep(SharedPreferences place, Forecast.Place p) {
         place.edit()
                 .putString("name", p.name)
                 .putLong("lat", Double.doubleToRawLongBits(p.latitude))
@@ -269,6 +297,10 @@ public final class WeatherActivity extends Activity {
     }
 
     private Forecast.Place saved() {
+        return saved(place);
+    }
+
+    private static Forecast.Place saved(SharedPreferences place) {
         return new Forecast.Place(place.getString("name", ""), "",
                 Double.longBitsToDouble(place.getLong("lat", 0)), Double.longBitsToDouble(place.getLong("lon", 0)));
     }
@@ -310,7 +342,9 @@ public final class WeatherActivity extends Activity {
             list.addView(row, lp);
             if (focus == null || p.equals(current)) focus = row;
         }
-        popup.showAsDropDown(anchor, 0, Math.round(8 * dp), Gravity.END);
+        // Right edges lined up with the pill: Gravity.END pushes the list off screen on Android 9.
+        list.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.showAsDropDown(anchor, anchor.getWidth() - list.getMeasuredWidth(), Math.round(8 * dp));
         focus.requestFocus();
     }
 }

@@ -30,5 +30,16 @@
             </intent-filter>
             <meta-data android:name="com.gathin.tvhome.card" android:resource="@xml/module_card" />
         </activity>
+
+        <!-- The last reading, read-only, for the launcher's weather_pill; reading it schedules RefreshJob. -->
+        <provider
+            android:name=".NowProvider"
+            android:authorities="io.github.sumyabazar1.weather.now"
+            android:exported="true" />
+
+        <service
+            android:name=".RefreshJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>
