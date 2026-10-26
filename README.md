@@ -28,11 +28,12 @@ Everything can be undone. Apps are **disabled, never uninstalled**, and there's 
 | Ads and content rows | PatchWall (`com.mitv.tvhome.atv`), `com.xm.webcontent`, `com.xiaomi.floatingframe`, Google TV recommendations, the partner auto-installer | No sponsored rows, and no apps installed behind your back |
 | Lock-screen ads | Glance (`com.glance.tv`) | The screensaver is clean |
 | Sponsored channels | Mi TV+ (`com.mitv.tvhome.mitvplus`), Sensara (`co.sensara.tv.mitv`) | No promoted channels or show "suggestions" |
-| Xiaomi background apps | TV Manager cleaner, handbook, legal screens, update service | Less running in the background on a 1 GB TV |
+| Xiaomi background apps | Handbook, legal screens, update service | Less running in the background on a 1 GB TV |
 | Preloaded apps | Mi Music, Play Games, Play Movies & TV, Mi Gallery | Gone from the app list. USB photos still open in Media Player |
 | **Your choice** | Voice assistant, Chromecast, Mi Cast, Miracast, FanCode, Sun NXT, Eros, discovery+, Prasar Bharati, Al Jazeera | Read [Before you run it](#3-choose-what-to-keep) first |
 
-**These stay on:** Live TV and the HDMI inputs (`com.android.tv`), the input menu, the remote and Bluetooth,
+**These stay on:** Live TV and the HDMI inputs (`com.android.tv`), TV Manager (it has a dock slot), the input
+menu, the remote and Bluetooth,
 the on-screen keyboard (Gboard), the Play Store and Play Services, Netflix, Prime Video and YouTube.
 The new home screen hides some of them (the Play Store and YouTube among them) to keep the grid clear. They
 stay installed and working.
@@ -167,9 +168,10 @@ The settings for this TV are already in
 | Setting | Value | Why |
 |---|---|---|
 | `live_tv_package` | `com.android.tv` | The **Inputs** button opens this TV's Live TV and the HDMI ports |
-| `hidden_apps` | Live TV, Mi Gallery, Media Explorer, Smart Share, Play Store, Sun NXT, SonyLIV, YouTube | Keeps the grid clear. Live TV is in the Inputs menu, and hidden apps still open from Settings → Apps |
-| `dock_apps` | TiviMate, SmartTube, Netflix, Prime Video, Hotstar, Airtel Xstream, Zee5 | The seven apps in the dock, in this order. Missing apps are skipped and their slots filled from the grid |
+| `hidden_apps` | Live TV, Mi Gallery, Media Explorer, Smart Share, Play Store, Sun NXT, SonyLIV, YouTube, Zee5, the weather add-on | Keeps the grid clear. Live TV is in the Inputs menu, and hidden apps still open from Settings → Apps |
+| `dock_apps` | TiviMate, SmartTube, Netflix, Prime Video, Hotstar, Airtel Xstream, TV Manager | The seven apps in the dock, in this order. Missing apps are skipped and their slots filled from the grid |
 | `columns` | `7` | Seven dock slots, and seven tiles per grid row |
+| `weather_pill` | `io.github.sumyabazar1.weather` | A weather pill first in the top bar, with the place and temperature. Needs the weather add-on ([step 5b](#5b-optional-the-weather-pill)); without it the pill is left out |
 
 Build and install:
 
@@ -180,6 +182,28 @@ TV_HOST=<tv ip> launcher/build-and-install.sh
 The script checks the TV's Android version, builds the APK, installs it, and makes it the Home app. Only
 after that does it disable the stock Google launcher. Press **Home** on the remote and you should land on
 the new screen.
+
+If you already ran an older list that disabled TV Manager, turn it back on so its dock slot fills:
+`tools/venv/bin/python tools/tv.py 'pm enable com.xiaomi.mitv.tvmanager'`.
+
+### 5b. Optional: the weather pill
+
+The weather comes from a small separate app, [`addons/weather`](addons/weather/README.md). It fetches from
+Open-Meteo (no account, no location permission) and the home screen only reads its last reading, so the
+launcher itself still has no network access. Build and install it with the same JDK and SDK:
+
+```bash
+cd addons/weather && ./gradlew assembleRelease
+TV_HOST=<tv ip> ../../tools/venv/bin/python -I ../../tools/tv.py --push app/build/outputs/apk/release/app-release.apk /data/local/tmp/addon.apk
+TV_HOST=<tv ip> ../../tools/venv/bin/python -I ../../tools/tv.py 'pm install -r /data/local/tmp/addon.apk; rm -f /data/local/tmp/addon.apk'
+cd ../..
+```
+
+Press Home. The launcher may ask once whether to show the weather card: answer as you like. Then select the
+weather pill and pick your city. The pill then shows its temperature and refreshes
+every 30 minutes while the TV is online. To use a fixed list of places instead of the city search, fill
+`places` in `addons/weather/app/src/main/res/values/options.xml` (`Label|latitude|longitude` per item)
+before building. To drop the pill, set `weather_pill` to empty in `config.xml` and reinstall the launcher.
 
 **Optional: a nicer look.** Push one of the themes. `glass` gives a dark navy wallpaper, a frosted dock and
 a glow in each app's colour:

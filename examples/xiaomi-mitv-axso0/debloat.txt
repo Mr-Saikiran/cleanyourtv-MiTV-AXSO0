@@ -33,7 +33,7 @@ com.mitv.tvhome.mitvplus                    # Mi TV+ sponsored live channels
 co.sensara.tv.mitv                          # Sensara partner TV guide (sponsored show recommendations)
 
 # Xiaomi background services
-com.xiaomi.mitv.tvmanager                   # "TV Manager" cleaner
+# com.xiaomi.mitv.tvmanager                 # "TV Manager" cleaner: kept here, it has a dock slot in config.xml
 com.xiaomi.mitv.handbook
 com.xiaomi.mitv.updateservice               # firmware updates: re-enable to check for one
 com.xiaomo.tv.milegal                       # static legal / privacy text screens
