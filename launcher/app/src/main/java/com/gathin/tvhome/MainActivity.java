@@ -738,6 +738,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         btnLibraryTop.setVisibility(cfg.libraryButton && cfg.appLibrary ? View.VISIBLE : View.GONE);
         addTopBarApps(cfg.topBarApps, cfg.launchActions);
+        weatherPill = WeatherPill.add(this, findViewById(R.id.topButtons), getString(R.string.weather_pill));
+        if (weatherPill != null) topAppButtons.add(weatherPill.view());
         iconOnlyButtons = cfg.iconOnlyButtons;
         topMenu = cfg.topMenu;
         wifiIconOnly = iconOnlyButtons && cfg.wifiLabelWidth <= 0;
@@ -789,7 +791,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
-            int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
+            int firstButton = weatherPill != null ? R.id.btnWeather
+                    : btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
             int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
             int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
@@ -938,6 +941,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         updateClockVisibility();
         tileRefresh.onStart();
+        if (weatherPill != null) weatherPill.onStart();
     }
 
     @Override
@@ -1179,6 +1183,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         handler.removeCallbacks(clockCheck);
         stopped = true;
         tileRefresh.onStop();
+        if (weatherPill != null) weatherPill.onStop();
     }
 
     /**
@@ -2330,8 +2335,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         return findViewById(R.id.btnSettings);
     }
 
-    /** top_bar_apps buttons, in bar order. */
+    /** top_bar_apps buttons, in bar order, and the weather_pill button. */
     private final List<View> topAppButtons = new ArrayList<>();
+    /** config weather_pill, or null when it is off or the add-on is missing. */
+    private WeatherPill weatherPill;
 
     /**
      * Puts each top_bar_apps app in the top bar as a round pill with the app's own logo, left of the network pill.
