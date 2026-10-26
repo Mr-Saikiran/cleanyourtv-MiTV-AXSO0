@@ -83,11 +83,11 @@ public class ForecastTest {
     @Test
     public void placesFromOptionsSkipMalformedItems() {
         java.util.List<Forecast.Place> p = Forecast.places(new String[] {
-                " Home | 17.5 | 78.4 ", "Broken|north|east", "|1|2", "Two|fields", "Away|-33.9|18.4"});
+                " Home | 47.9 | 106.9 ", "Broken|north|east", "|1|2", "Two|fields", "Away|-33.9|18.4"});
         assertEquals(2, p.size());
         assertEquals("Home", p.get(0).name);
-        assertEquals(17.5, p.get(0).latitude, 0);
-        assertEquals(78.4, p.get(0).longitude, 0);
+        assertEquals(47.9, p.get(0).latitude, 0);
+        assertEquals(106.9, p.get(0).longitude, 0);
         assertEquals(new Forecast.Place("Away", "detail ignored", -33.9, 18.4), p.get(1));
     }
 }
