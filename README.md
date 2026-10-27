@@ -171,6 +171,10 @@ The settings for this TV are already in
 | `hidden_apps` | Live TV, Mi Gallery, Media Explorer, Smart Share, Play Store, Sun NXT, SonyLIV, YouTube, Zee5, the weather add-on | Keeps the grid clear. Live TV is in the Inputs menu, and hidden apps still open from Settings → Apps |
 | `dock_apps` | TiviMate, SmartTube, Netflix, Prime Video, Hotstar, Airtel Xstream, TV Manager | The seven apps in the dock, in this order. Missing apps are skipped and their slots filled from the grid |
 | `columns` | `7` | Seven dock slots, and seven tiles per grid row |
+| `greeting_name` | `Sunny` | The greeting reads GOOD MORNING, SUNNY |
+| `icon_only_buttons`, `icon_only_inputs` | `true` | Inputs, Wi-Fi and Settings top right as round icons, without names |
+| `dock_title` | `false` | No app name in large type above the dock. With the dock in its own row, there are no names under its tiles either |
+| `dock_glass` | `true` | The dock band as frosted glass, so the wallpaper shows through |
 | `weather_pill` | `io.github.sumyabazar1.weather` | A weather pill first in the top bar, with the place and temperature. Needs the weather add-on ([step 5b](#5b-optional-the-weather-pill)); without it the pill is left out |
 
 Build and install:
@@ -205,16 +209,36 @@ every 30 minutes while the TV is online. To use a fixed list of places instead o
 `places` in `addons/weather/app/src/main/res/values/options.xml` (`Label|latitude|longitude` per item)
 before building. To drop the pill, set `weather_pill` to empty in `config.xml` and reinstall the launcher.
 
-**Optional: a nicer look.** Push one of the themes. `glass` gives a dark navy wallpaper, a frosted dock and
-a glow in each app's colour:
+### 5c. The wallpaper and the look: nature-calm
+
+The wallpaper photos can't be built into the launcher, so they're pushed to the TV as a theme. This TV's
+theme is [`examples/xiaomi-mitv-axso0/config.json`](examples/xiaomi-mitv-axso0/config.json): the
+[`nature-calm`](themes/nature-calm) photos (a new one every 5 minutes, shuffled), a frosted dock, icon-only
+buttons, no dock names and the greeting for Sunny. It leaves out `dock_apps`, `columns` and `hidden_apps`,
+so your dock from `config.xml` stays as it is. Copy the photos and the config into one folder in `work/`,
+which git ignores, and push it:
 
 ```bash
-TV_HOST=<tv ip> tools/theme.sh themes/glass
-TV_HOST=<tv ip> tools/theme.sh --reset         # back to plain black
+rm -rf work/theme && mkdir -p work/theme
+cp -R themes/nature-calm/wallpapers work/theme/
+cp examples/xiaomi-mitv-axso0/config.json work/theme/
+TV_HOST=<tv ip> tools/theme.sh work/theme
 ```
 
-You can see all the themes in [`themes/README.md`](themes/README.md). A theme's `dock_apps` replaces the
-one in `config.xml`, so edit `themes/<name>/config.json` if you want your own dock order with a theme.
+Push it again after any launcher reinstall that wiped the launcher's data, or whenever the wallpaper is gone
+after a reboot. The greeting, the icon-only buttons and the hidden dock names come from `config.xml` and stay
+even then. `TV_HOST=<tv ip> tools/theme.sh --reset` goes back to plain black.
+
+**If the theme disappears after a reboot**, check whether its files are still on the TV:
+
+```bash
+tools/venv/bin/python tools/tv.py 'ls -la /sdcard/Android/data/com.gathin.tvhome/files /sdcard/Android/data/com.gathin.tvhome/files/wallpapers'
+```
+
+If the folder is empty, something deleted it. One suspect, not yet confirmed on this TV, is Xiaomi's TV Manager cleaner
+(`com.xiaomi.mitv.tvmanager`, which has a dock slot): its junk clean-up may clear `Android/data`. Push the
+theme again, and don't run its clean-up. If the files come back empty again, take TV Manager out of the dock
+and uncomment its line in the debloat list.
 
 ### 6. Close ADB when you're done
 
@@ -258,7 +282,7 @@ launcher has to be built on a computer.
 | Undo everything | `TV_HOST=<tv ip> tools/restore.sh examples/xiaomi-mitv-axso0/debloat.txt` |
 | Turn one app back on | `tools/venv/bin/python tools/tv.py 'pm enable com.google.android.katniss'` (any package name from the list) |
 | Change the dock apps or order | Edit `dock_apps` in `config.xml` and run `launcher/build-and-install.sh` again, or edit a theme's `config.json` and push it with `tools/theme.sh` |
-| Change the wallpaper | Put a `wallpaper.jpg` in a theme folder and push it with `tools/theme.sh themes/<name>` |
+| Change the wallpaper | Put your own pictures in `work/theme/wallpapers/` (or one `wallpaper.jpg` in `work/theme/`) and push it with `tools/theme.sh work/theme`, as in [step 5c](#5c-the-wallpaper-and-the-look-nature-calm) |
 | Check after a firmware update | Updates bring the disabled apps back. Turn USB debugging on, then run `tools/venv/bin/python -I tools/check.py examples/xiaomi-mitv-axso0/debloat.txt` to see what came back, and `tools/venv/bin/python -I tools/check.py --fix examples/xiaomi-mitv-axso0/debloat.txt` to disable it again |
 | Remove the new launcher | Run the restore command above, then uninstall *Home* (`com.gathin.tvhome`) in Settings → Apps |
 
