@@ -28,12 +28,11 @@ Everything can be undone. Apps are **disabled, never uninstalled**, and there's 
 | Ads and content rows | PatchWall (`com.mitv.tvhome.atv`), `com.xm.webcontent`, `com.xiaomi.floatingframe`, Google TV recommendations, the partner auto-installer | No sponsored rows, and no apps installed behind your back |
 | Lock-screen ads | Glance (`com.glance.tv`) | The screensaver is clean |
 | Sponsored channels | Mi TV+ (`com.mitv.tvhome.mitvplus`), Sensara (`co.sensara.tv.mitv`) | No promoted channels or show "suggestions" |
-| Xiaomi background apps | Handbook, legal screens, update service | Less running in the background on a 1 GB TV |
+| Xiaomi background apps | TV Manager cleaner, handbook, legal screens, update service | Less running in the background on a 1 GB TV |
 | Preloaded apps | Mi Music, Play Games, Play Movies & TV, Mi Gallery | Gone from the app list. USB photos still open in Media Player |
 | **Your choice** | Voice assistant, Chromecast, Mi Cast, Miracast, FanCode, Sun NXT, Eros, discovery+, Prasar Bharati, Al Jazeera | Read [Before you run it](#3-choose-what-to-keep) first |
 
-**These stay on:** Live TV and the HDMI inputs (`com.android.tv`), TV Manager (it has a dock slot), the input
-menu, the remote and Bluetooth,
+**These stay on:** Live TV and the HDMI inputs (`com.android.tv`), the input menu, the remote and Bluetooth,
 the on-screen keyboard (Gboard), the Play Store and Play Services, Netflix, Prime Video and YouTube.
 The new home screen hides some of them (the Play Store and YouTube among them) to keep the grid clear. They
 stay installed and working.
@@ -168,8 +167,8 @@ The settings for this TV are already in
 | Setting | Value | Why |
 |---|---|---|
 | `live_tv_package` | `com.android.tv` | The **Inputs** button opens this TV's Live TV and the HDMI ports |
-| `hidden_apps` | Live TV, Mi Gallery, Media Explorer, Smart Share, Play Store, Sun NXT, SonyLIV, YouTube, Zee5, the weather add-on | Keeps the grid clear. Live TV is in the Inputs menu, and hidden apps still open from Settings → Apps |
-| `dock_apps` | TiviMate, SmartTube, Netflix, Prime Video, Hotstar, Airtel Xstream, TV Manager | The seven apps in the dock, in this order. Missing apps are skipped and their slots filled from the grid |
+| `hidden_apps` | Live TV, Mi Gallery, Media Explorer, Smart Share, Play Store, Sun NXT, SonyLIV, YouTube, the weather add-on | Keeps the grid clear. Live TV is in the Inputs menu, and hidden apps still open from Settings → Apps |
+| `dock_apps` | TiviMate, SmartTube, Netflix, Prime Video, Hotstar, Airtel Xstream, Zee5 | The seven apps in the dock, in this order. Missing apps are skipped and their slots filled from the grid |
 | `columns` | `7` | Seven dock slots, and seven tiles per grid row |
 | `greeting_name` | `Sunny` | The greeting reads GOOD MORNING, SUNNY |
 | `icon_only_buttons`, `icon_only_inputs` | `true` | Inputs, Wi-Fi and Settings top right as round icons, without names |
@@ -187,8 +186,10 @@ The script checks the TV's Android version, builds the APK, installs it, and mak
 after that does it disable the stock Google launcher. Press **Home** on the remote and you should land on
 the new screen.
 
-If you already ran an older list that disabled TV Manager, turn it back on so its dock slot fills:
-`tools/venv/bin/python tools/tv.py 'pm enable com.xiaomi.mitv.tvmanager'`.
+**Keep TV Manager off.** Its *Boost* and *Optimize* delete the launcher's theme files, so the wallpaper and
+the look vanish. The debloat list disables it. If you ran an older list that left it on, turn it off and
+push the theme again ([step 5c](#5c-the-wallpaper-and-the-look)):
+`tools/venv/bin/python tools/tv.py 'pm disable-user --user 0 com.xiaomi.mitv.tvmanager'`.
 
 ### 5b. Optional: the weather pill
 
@@ -239,10 +240,9 @@ stay even then.
 tools/venv/bin/python tools/tv.py 'ls -la /sdcard/Android/data/com.gathin.tvhome/files /sdcard/Android/data/com.gathin.tvhome/files/wallpapers'
 ```
 
-If the folder is empty, something deleted it. One suspect, not yet confirmed on this TV, is Xiaomi's TV Manager cleaner
-(`com.xiaomi.mitv.tvmanager`, which has a dock slot): its junk clean-up may clear `Android/data`. Push the
-theme again, and don't run its clean-up. If the files come back empty again, take TV Manager out of the dock
-and uncomment its line in the debloat list.
+If the folder is empty, something deleted it. On this TV that was Xiaomi's TV Manager (*Boost* /
+*Optimize*), so check that it's still disabled
+(`tools/venv/bin/python tools/tv.py 'pm list packages -d' | grep tvmanager`), then push the theme again.
 
 ### 6. Close ADB when you're done
 
