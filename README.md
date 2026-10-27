@@ -209,25 +209,29 @@ every 30 minutes while the TV is online. To use a fixed list of places instead o
 `places` in `addons/weather/app/src/main/res/values/options.xml` (`Label|latitude|longitude` per item)
 before building. To drop the pill, set `weather_pill` to empty in `config.xml` and reinstall the launcher.
 
-### 5c. The wallpaper and the look: nature-calm
+### 5c. The wallpaper and the look
 
-The wallpaper photos can't be built into the launcher, so they're pushed to the TV as a theme. This TV's
-theme is [`examples/xiaomi-mitv-axso0/config.json`](examples/xiaomi-mitv-axso0/config.json): the
-[`nature-calm`](themes/nature-calm) photos (a new one every 5 minutes, shuffled), a frosted dock, icon-only
-buttons, no dock names and the greeting for Sunny. It leaves out `dock_apps`, `columns` and `hidden_apps`,
-so your dock from `config.xml` stays as it is. Copy the photos and the config into one folder in `work/`,
-which git ignores, and push it:
+The wallpaper can't be built into the launcher, so it's pushed to the TV as a theme. This TV's theme is its
+own folder, [`examples/xiaomi-mitv-axso0/`](examples/xiaomi-mitv-axso0):
+
+- [`wallpaper.jpg`](examples/xiaomi-mitv-axso0/wallpaper.jpg): the Milky Way over snowy mountains and a lake,
+  cropped to the TV's 1920×1080 and kept under 300 KB, so a 1 GB TV loads it quickly.
+- [`config.json`](examples/xiaomi-mitv-axso0/config.json): a frosted dock, icon-only buttons, no dock names
+  and the greeting for Sunny. It leaves out `dock_apps`, `columns` and `hidden_apps`, so your dock from
+  `config.xml` stays as it is.
+
+Push both with one command:
 
 ```bash
-rm -rf work/theme && mkdir -p work/theme
-cp -R themes/nature-calm/wallpapers work/theme/
-cp examples/xiaomi-mitv-axso0/config.json work/theme/
-TV_HOST=<tv ip> tools/theme.sh work/theme
+TV_HOST=<tv ip> tools/theme.sh examples/xiaomi-mitv-axso0
 ```
 
+To use another picture, replace `wallpaper.jpg` with a dark 1920×1080 JPEG under about 300 KB and push again.
+`TV_HOST=<tv ip> tools/theme.sh --reset` goes back to plain black.
+
 Push it again after any launcher reinstall that wiped the launcher's data, or whenever the wallpaper is gone
-after a reboot. The greeting, the icon-only buttons and the hidden dock names come from `config.xml` and stay
-even then. `TV_HOST=<tv ip> tools/theme.sh --reset` goes back to plain black.
+after a reboot. The greeting, the icon-only buttons and the hidden dock names come from `config.xml`, so they
+stay even then.
 
 **If the theme disappears after a reboot**, check whether its files are still on the TV:
 
@@ -282,7 +286,7 @@ launcher has to be built on a computer.
 | Undo everything | `TV_HOST=<tv ip> tools/restore.sh examples/xiaomi-mitv-axso0/debloat.txt` |
 | Turn one app back on | `tools/venv/bin/python tools/tv.py 'pm enable com.google.android.katniss'` (any package name from the list) |
 | Change the dock apps or order | Edit `dock_apps` in `config.xml` and run `launcher/build-and-install.sh` again, or edit a theme's `config.json` and push it with `tools/theme.sh` |
-| Change the wallpaper | Put your own pictures in `work/theme/wallpapers/` (or one `wallpaper.jpg` in `work/theme/`) and push it with `tools/theme.sh work/theme`, as in [step 5c](#5c-the-wallpaper-and-the-look-nature-calm) |
+| Change the wallpaper | Replace `examples/xiaomi-mitv-axso0/wallpaper.jpg` and run `tools/theme.sh examples/xiaomi-mitv-axso0`, as in [step 5c](#5c-the-wallpaper-and-the-look) |
 | Check after a firmware update | Updates bring the disabled apps back. Turn USB debugging on, then run `tools/venv/bin/python -I tools/check.py examples/xiaomi-mitv-axso0/debloat.txt` to see what came back, and `tools/venv/bin/python -I tools/check.py --fix examples/xiaomi-mitv-axso0/debloat.txt` to disable it again |
 | Remove the new launcher | Run the restore command above, then uninstall *Home* (`com.gathin.tvhome`) in Settings → Apps |
 
